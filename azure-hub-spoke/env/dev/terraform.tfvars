@@ -74,6 +74,7 @@ subnets = {
 spoke_vnet_keys = ["spoke", "spoke2"]
 
 admin_username = "azureadmin"
+admin_password = "Akash@1234@"
 
 bastions = {
   hub = {
