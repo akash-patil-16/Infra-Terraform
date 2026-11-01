@@ -26,6 +26,11 @@ parameters:
     type: string
     default: 'v1.2.0'
 
+  - name: path
+    displayName: 'Select Path to Deploy'
+    type: string
+    default: 'infra/statefileBackend'
+
 stages:
   - stage: Validate
     displayName: Terraform Validate
@@ -36,6 +41,7 @@ stages:
         - template: templates/checkout.yml
           parameters:
             GitTag: ${{ parameters.GitTag }}
+            path: ${{ parameters.path }}
         
         - template: templates/terraform-validate.yml
 
@@ -54,6 +60,7 @@ stages:
         - template: templates/tf-scan.yml
           parameters:
             GitTag: ${{ parameters.GitTag }}
+            path: ${{ parameters.path }}
 
   - stage: Scan_Tflint
     dependsOn: Validate
@@ -69,6 +76,7 @@ stages:
         - template: templates/tflint-scan.yml
           parameters:
             GitTag: ${{ parameters.GitTag }}
+            path: ${{ parameters.path }}
           
   - stage: Plan
     dependsOn:
@@ -87,6 +95,7 @@ stages:
           - template: templates/checkout.yml
             parameters:
               GitTag: ${{ parameters.GitTag }}
+              path: ${{ parameters.path }}
 
           - template: templates/terraform-plan.yml
 
@@ -114,5 +123,6 @@ stages:
           - template: templates/checkout.yml
             parameters:
               GitTag: ${{ parameters.GitTag }}
+              path: ${{ parameters.path }}
               
           - template: templates/terraform-apply.yml

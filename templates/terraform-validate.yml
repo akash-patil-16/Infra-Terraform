@@ -1,9 +1,15 @@
+parameters:
+  - name: path
+    displayName: 'Select Path to Deploy'
+    type: string
+    default: 'infra/statefileBackend'
+    
 steps : 
         - task: TerraformTask@5
           inputs:
             provider: 'azurerm'
             command: 'init'
-            workingDirectory: '$(System.DefaultWorkingDirectory)/infra/statefileBackend/'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/${{ parameters.path }}/'
             backendServiceArm: 'Azure subscription 1(05ff4ddb-aff1-402d-98e9-fb103401eee6)'
             backendAzureRmStorageAccountName: 'aptfstorageaccount'
             backendAzureRmContainerName: 'featuretf'
@@ -12,4 +18,4 @@ steps :
           inputs:
             provider: 'azurerm'
             command: 'validate'
-            workingDirectory: '$(System.DefaultWorkingDirectory)/infra/statefileBackend/'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/${{ parameters.path }}/'
