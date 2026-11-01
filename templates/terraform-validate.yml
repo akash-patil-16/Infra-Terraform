@@ -11,9 +11,9 @@ steps :
             command: 'init'
             workingDirectory: '$(System.DefaultWorkingDirectory)/${{ parameters.path }}/'
             backendServiceArm: 'Azure subscription 1(a22e5b40-a701-4b0e-b937-b43ed360039b)'
-            backendAzureRmStorageAccountName: 'aptfstorageaccount'
+            backendAzureRmStorageAccountName: 'aptfstorageaccountnov'
             backendAzureRmContainerName: 'featuretf'
-            backendAzureRmKey: 'featuretf'
+            backendAzureRmKey: 'terraform.tfstate'
         - task: TerraformTask@5
           inputs:
             provider: 'azurerm'
