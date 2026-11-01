@@ -37,11 +37,11 @@ stages:
       - job: Init
         displayName: Terraform Validate
         steps:
-        - template: templates/checkout.yml
+        - template: ../templates/checkout.yml
           parameters:
             GitTag: ${{ parameters.GitTag }}
         
-        - template: templates/terraform-validate.yml
+        - template: ../templates/terraform-validate.yml
 
   - stage: Scan_TFsec
     dependsOn: Validate
@@ -55,7 +55,7 @@ stages:
         displayName: Scan using Tfsec
         steps:
 
-        - template: templates/tf-scan.yml
+        - template: ../templates/tf-scan.yml
           parameters:
             GitTag: ${{ parameters.GitTag }}
 
@@ -70,7 +70,7 @@ stages:
       - job: Scan_Tflint
         steps:
 
-        - template: templates/tflint-scan.yml
+        - template: ../templates/tflint-scan.yml
           parameters:
             GitTag: ${{ parameters.GitTag }}
           
@@ -88,11 +88,11 @@ stages:
       - job: Plan
         displayName: Terraform Plan
         steps:
-          - template: templates/checkout.yml
+          - template: ../templates/checkout.yml
             parameters:
               GitTag: ${{ parameters.GitTag }}
 
-          - template: templates/terraform-plan.yml
+          - template: ../templates/terraform-plan.yml
 
   - stage: Manual_approval
     pool: server
@@ -115,8 +115,8 @@ stages:
       - job: Terraform_apply
         displayName: Terraform Apply
         steps:
-          - template: templates/checkout.yml
+          - template: ../templates/checkout.yml
             parameters:
               GitTag: ${{ parameters.GitTag }}
               
-          - template: templates/terraform-apply.yml
+          - template: ../templates/terraform-apply.yml
