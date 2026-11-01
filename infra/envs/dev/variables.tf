@@ -92,10 +92,10 @@ variable "Vnet-peering" {
 
 variable "Bastion" {
   type = map(object({
-    bastion_name        = string
-    location            = string
-    resource_group_key  = string
-    subnet_key          = string
-    public_ip_key       = string
+    bastion_name       = string
+    location           = string
+    resource_group_key = string
+    subnet_key         = string
+    public_ip_key      = string
   }))
 }

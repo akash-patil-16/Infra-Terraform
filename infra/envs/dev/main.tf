@@ -103,12 +103,12 @@ module "linux-VM" {
 }
 
 module "Bastion" {
-  source              = "../../modules/Bastion"
-  for_each            = var.Bastion
-  bastion_name        = each.value.bastion_name
-  location            = module.resource-group[each.value.resource_group_key].location
-  resource_group_name = module.resource-group[each.value.resource_group_key].name
-  subnet_id           = module.subnet[each.value.subnet_key].id
+  source               = "../../modules/Bastion"
+  for_each             = var.Bastion
+  bastion_name         = each.value.bastion_name
+  location             = module.resource-group[each.value.resource_group_key].location
+  resource_group_name  = module.resource-group[each.value.resource_group_key].name
+  subnet_id            = module.subnet[each.value.subnet_key].id
   public_ip_address_id = module.pip-VM[each.value.public_ip_key].id
 }
 

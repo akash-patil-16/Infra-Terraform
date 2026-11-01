@@ -18,7 +18,7 @@ variable "account_tier" {
   type        = string
 }
 
-variable "account_replication_type"{
+variable "account_replication_type" {
   description = "The replication type of the storage account"
   type        = string
 }

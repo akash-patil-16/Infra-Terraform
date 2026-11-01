@@ -1,3 +1,3 @@
-output "storageoutput"{
-    value = azurerm_storage_account.samain.name
+output "storageoutput" {
+  value = azurerm_storage_account.samain.name
 }
