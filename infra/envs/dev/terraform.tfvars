@@ -175,10 +175,10 @@ Vnet-peering = {
 
 Bastion = {
   bastion1 = {
-    bastion_name        = "bastion-apatil"
-    location            = "central india"
-    resource_group_key  = "rg1"
-    subnet_key          = "subnet4"
-    public_ip_key       = "pip1"
+    bastion_name       = "bastion-apatil"
+    location           = "central india"
+    resource_group_key = "rg1"
+    subnet_key         = "subnet4"
+    public_ip_key      = "pip1"
   }
 }

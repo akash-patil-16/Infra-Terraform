@@ -1,0 +1,128 @@
+trigger: 
+  branches:
+    include:
+      - feature
+  paths:
+    include:
+      - azure-hub-spoke/**
+
+pool:
+  name: apatil-pool
+
+
+parameters:
+  - name: TFsec
+    displayName: Scan TFsec
+    type: boolean
+    default: true
+  
+  - name:  TFlint
+    displayName: Scan TFlint
+    type: boolean
+    default: true
+
+  - name: GitTag
+    displayName: 'Select Git Tag to Deploy'
+    type: string
+    default: 'v1.2.0'
+  - name: path
+    displayName: 'Select Path to Deploy'
+    type: string
+    default: 'azure-hub-spoke/env/dev'
+
+stages:
+  - stage: Validate
+    displayName: Terraform Validate
+    jobs:
+      - job: Init
+        displayName: Terraform Validate
+        steps:
+        - template: ../templates/checkout.yml
+          parameters:
+            GitTag: ${{ parameters.GitTag }}
+        
+        - template: ../templates/terraform-validate.yml
+          parameters:
+            path: ${{ parameters.path }}
+
+  - stage: Scan_TFsec
+    dependsOn: Validate
+    condition: and(
+        eq(dependencies.Validate.result, 'Succeeded'),
+        ${{ parameters.TFsec }}
+      )
+    displayName: Scan using Tfsec
+    jobs: 
+      - job: Scan_TFsec
+        displayName: Scan using Tfsec
+        steps:
+
+        - template: ../templates/tf-scan.yml
+          parameters:
+            GitTag: ${{ parameters.GitTag }}
+
+  - stage: Scan_Tflint
+    dependsOn: Validate
+    condition: and(
+        eq(dependencies.Validate.result, 'Succeeded'),
+        ${{ parameters.TFlint }}
+      )
+    displayName: Scan using TFlint
+    jobs:
+      - job: Scan_Tflint
+        steps:
+
+        - template: ../templates/tflint-scan.yml
+          parameters:
+            GitTag: ${{ parameters.GitTag }}
+          
+  - stage: Plan
+    dependsOn:
+    - Scan_TFsec
+    - Scan_Tflint
+    condition: |
+      and(
+        in(dependencies.Scan_TFsec.result, 'Succeeded', 'Skipped'),
+        in(dependencies.Scan_Tflint.result, 'Succeeded','Skipped')
+      )
+    displayName: Terraform Plan
+    jobs:
+      - job: Plan
+        displayName: Terraform Plan
+        steps:
+          - template: ../templates/checkout.yml
+            parameters:
+              GitTag: ${{ parameters.GitTag }}
+
+          - template: ../templates/terraform-plan.yml
+            parameters:
+              path: ${{ parameters.path }}
+
+  - stage: Manual_approval
+    pool: server
+    dependsOn: Plan
+    condition: eq(dependencies.Plan.result, 'Succeeded')
+    displayName: Manual Approval
+    jobs:
+      - job: Manual_approval
+        displayName: Manual Approval 
+        steps:
+          - task: ManualValidation@1
+            inputs:
+              notifyUsers: 'akashpatil302.ap@gmail.com'
+
+  - stage: Terraform_apply
+    dependsOn: Manual_approval
+    condition:  eq(dependencies.Manual_approval.result, 'Succeeded')
+    displayName: Terraform Apply
+    jobs:
+      - job: Terraform_apply
+        displayName: Terraform Apply
+        steps:
+          - template: ../templates/checkout.yml
+            parameters:
+              GitTag: ${{ parameters.GitTag }}
+              
+          - template: ../templates/terraform-apply.yml
+            parameters:
+              path: ${{ parameters.path }}

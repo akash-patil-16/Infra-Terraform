@@ -1,4 +1,4 @@
-variable "name"{
+variable "name" {
   description = "The name of the Linux Virtual Machine."
   type        = string
 }

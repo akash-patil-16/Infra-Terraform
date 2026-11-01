@@ -7,50 +7,123 @@ trigger:
       - infra/statefileBackend/**
 
 pool:
-  vmImage: 'ubuntu-latest'
+  name: apatil-pool
 
-variables:
-  terraformVersion: 'latest'
+
+parameters:
+  - name: TFsec
+    displayName: Scan TFsec
+    type: boolean
+    default: true
   
+  - name:  TFlint
+    displayName: Scan TFlint
+    type: boolean
+    default: true
+
+  - name: GitTag
+    displayName: 'Select Git Tag to Deploy'
+    type: string
+    default: 'v1.2.0'
+
+  - name: path
+    displayName: 'Select Path to Deploy'
+    type: string
+    default: 'infra/statefileBackend'
+
 stages:
-  - stage: Checkout
-    displayName: 'Checkout Code'
+  - stage: Validate
+    displayName: Terraform Validate
     jobs:
-      - job: Checkout
-        displayName: 'Checkout Code'
+      - job: Init
+        displayName: Terraform Validate
         steps:
-          - checkout: self
-            clean: true
+        - template: templates/checkout.yml
+          parameters:
+            GitTag: ${{ parameters.GitTag }}
+        
+        - template: templates/terraform-validate.yml
+          parameters:
+             path: ${{ parameters.path }}
 
-  - stage: Deploy
-    displayName: 'Terraform Deployment'
-    dependsOn: Checkout
+  - stage: Scan_TFsec
+    dependsOn: Validate
+    condition: and(
+        eq(dependencies.Validate.result, 'Succeeded'),
+        ${{ parameters.TFsec }}
+      )
+    displayName: Scan using Tfsec
+    jobs: 
+      - job: Scan_TFsec
+        displayName: Scan using Tfsec
+        steps:
+
+        - template: templates/tf-scan.yml
+          parameters:
+            GitTag: ${{ parameters.GitTag }}
+
+  - stage: Scan_Tflint
+    dependsOn: Validate
+    condition: and(
+        eq(dependencies.Validate.result, 'Succeeded'),
+        ${{ parameters.TFlint }}
+      )
+    displayName: Scan using TFlint
     jobs:
-      - job: Terraform
-        displayName: 'Terraform Installation'
+      - job: Scan_Tflint
         steps:
-          - task: TerraformInstaller@1
+
+        - template: templates/tflint-scan.yml
+          parameters:
+            GitTag: ${{ parameters.GitTag }}
+          
+  - stage: Plan
+    dependsOn:
+    - Scan_TFsec
+    - Scan_Tflint
+    condition: |
+      and(
+        in(dependencies.Scan_TFsec.result, 'Succeeded', 'Skipped'),
+        in(dependencies.Scan_Tflint.result, 'Succeeded','Skipped')
+      )
+    displayName: Terraform Plan
+    jobs:
+      - job: Plan
+        displayName: Terraform Plan
+        steps:
+          - template: templates/checkout.yml
+            parameters:
+              GitTag: ${{ parameters.GitTag }}
+
+          - template: templates/terraform-plan.yml
+            parameters:
+              path: ${{ parameters.path }}
+
+  - stage: Manual_approval
+    pool: server
+    dependsOn: Plan
+    condition: eq(dependencies.Plan.result, 'Succeeded')
+    displayName: Manual Approval
+    jobs:
+      - job: Manual_approval
+        displayName: Manual Approval 
+        steps:
+          - task: ManualValidation@1
             inputs:
-              terraformVersion: $(terraformVersion)
+              notifyUsers: 'akashpatil302.ap@gmail.com'
 
-          - task: AzureCLI@2
-            inputs:
-              azureSubscription: 'AzureServiceConnectionApatil'
-              scriptType: 'bash'
-              scriptLocation: 'inlineScript'
-              inlineScript: |
-                    export ARM_USE_OIDC=true
-                    export ARM_CLIENT_ID=$servicePrincipalId
-                    export ARM_TENANT_ID=$tenantId
-                    export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
-
-                    echo "Logged in Successfully"
-
-                    cd $(System.DefaultWorkingDirectory)/infra/statefileBackend
-                    echo "Current Directory:"
-
-                    terraform init
-                    terraform validate
-                    terraform plan -out=tfplan
-                    terraform apply -auto-approve tfplan
-              DisplayName: 'Terraform Init, Validate, Plan and Apply'     
+  - stage: Terraform_apply
+    dependsOn: Manual_approval
+    condition:  eq(dependencies.Manual_approval.result, 'Succeeded')
+    displayName: Terraform Apply
+    jobs:
+      - job: Terraform_apply
+        displayName: Terraform Apply
+        steps:
+          - template: templates/checkout.yml
+            parameters:
+              GitTag: ${{ parameters.GitTag }}
+              
+          - template: templates/terraform-apply.yml
+            parameters:
+              path: ${{ parameters.path }}

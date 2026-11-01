@@ -1,0 +1,22 @@
+parameters:
+  - name: path
+    displayName: 'Select Path to Deploy'
+    type: string
+
+steps :
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/${{ parameters.path }}/'
+              backendServiceArm: 'Azure subscription 1(a22e5b40-a701-4b0e-b937-b43ed360039b)'
+              backendAzureRmStorageAccountName: 'aptfstorageaccountnov'
+              backendAzureRmContainerName: 'featuretf'
+              backendAzureRmKey: 'terraform.tfstate'
+
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/${{ parameters.path }}/'
+              environmentServiceNameAzureRM: 'Azure subscription 1(a22e5b40-a701-4b0e-b937-b43ed360039b)'
