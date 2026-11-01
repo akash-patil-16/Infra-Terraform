@@ -41,9 +41,10 @@ stages:
         - template: templates/checkout.yml
           parameters:
             GitTag: ${{ parameters.GitTag }}
-            path: ${{ parameters.path }}
         
         - template: templates/terraform-validate.yml
+          parameters:
+             path: ${{ parameters.path }}
 
   - stage: Scan_TFsec
     dependsOn: Validate
@@ -60,7 +61,6 @@ stages:
         - template: templates/tf-scan.yml
           parameters:
             GitTag: ${{ parameters.GitTag }}
-            path: ${{ parameters.path }}
 
   - stage: Scan_Tflint
     dependsOn: Validate
@@ -76,7 +76,6 @@ stages:
         - template: templates/tflint-scan.yml
           parameters:
             GitTag: ${{ parameters.GitTag }}
-            path: ${{ parameters.path }}
           
   - stage: Plan
     dependsOn:
@@ -95,9 +94,10 @@ stages:
           - template: templates/checkout.yml
             parameters:
               GitTag: ${{ parameters.GitTag }}
-              path: ${{ parameters.path }}
 
           - template: templates/terraform-plan.yml
+            parameters:
+              path: ${{ parameters.path }}
 
   - stage: Manual_approval
     pool: server
@@ -123,6 +123,7 @@ stages:
           - template: templates/checkout.yml
             parameters:
               GitTag: ${{ parameters.GitTag }}
-              path: ${{ parameters.path }}
               
           - template: templates/terraform-apply.yml
+            parameters:
+              path: ${{ parameters.path }}

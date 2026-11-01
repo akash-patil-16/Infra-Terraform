@@ -42,6 +42,8 @@ stages:
             GitTag: ${{ parameters.GitTag }}
         
         - template: ../templates/terraform-validate.yml
+          parameters:
+            path: ${{ parameters.path }}
 
   - stage: Scan_TFsec
     dependsOn: Validate
@@ -93,6 +95,8 @@ stages:
               GitTag: ${{ parameters.GitTag }}
 
           - template: ../templates/terraform-plan.yml
+            parameters:
+              path: ${{ parameters.path }}
 
   - stage: Manual_approval
     pool: server
@@ -120,3 +124,5 @@ stages:
               GitTag: ${{ parameters.GitTag }}
               
           - template: ../templates/terraform-apply.yml
+            parameters:
+              path: ${{ parameters.path }}
