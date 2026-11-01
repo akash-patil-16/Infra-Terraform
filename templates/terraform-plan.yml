@@ -2,7 +2,6 @@ parameters:
   - name: path
     displayName: 'Select Path to Deploy'
     type: string
-    default: 'infra/statefileBackend'
 
 steps :
           - task: TerraformTask@5
