@@ -1,12 +1,13 @@
 # Azure Hub-and-Spoke Network
 
-This Terraform project creates a hub VNet and two spoke VNets, bidirectional hub-to-spoke peering, and two Ubuntu Linux VMs in isolated spoke subnets. It does not deploy Azure Firewall, a VPN Gateway, or public IP addresses.
+This Terraform project creates a hub VNet and two spoke VNets, bidirectional hub-to-spoke peering, an Azure Bastion host in the hub, and two Ubuntu Linux VMs in isolated spoke subnets. It does not deploy Azure Firewall or a VPN Gateway. The Bastion host has a public IP; the VMs do not.
 
 The spoke subnet route tables are associated at deployment. By default they contain no custom route; setting `firewall_next_hop_ip` adds a `0.0.0.0/0` route via an existing Azure Firewall private IP. Configure that IP only after the firewall and its network path are ready, since this route redirects all spoke egress.
 
 ## Architecture
 
 - Hub: `rg-hub-network` / `vnet-hub` (`10.0.0.0/16`) with `AzureFirewallSubnet`, `GatewaySubnet`, and `snet-hub-management`.
+- Azure Bastion is deployed into the dedicated `AzureBastionSubnet` with a Standard static public IP.
 - Spokes: `rg-spoke-network` contains `vnet-spoke` (`10.1.0.0/16`) for web and `vnet-spoke2` (`10.2.0.0/16`) for app.
 - Each spoke has peering to the hub in both directions with forwarded traffic enabled.
 - Each VM has a dynamic private IP, NIC, system-assigned managed identity, Ubuntu 22.04 LTS image, and username/password authentication. No VM has a public IP.
@@ -30,6 +31,7 @@ azure-hub-spoke/
     network-security-group/
     vnet-peering/
     route-table/
+    bastion/
 ```
 
 Each module contains `main.tf`, `variables.tf`, and `outputs.tf`.
@@ -100,7 +102,7 @@ Review the plan carefully, especially any configured default routes, before appl
 
 ## Outputs
 
-Terraform outputs include the hub VNet ID, all spoke VNet IDs, subnet ID maps, VM names and private IPs, NIC IDs, and peering IDs.
+Terraform outputs include the hub VNet ID, all spoke VNet IDs, subnet ID maps, VM names and private IPs, NIC IDs, peering IDs, and Bastion host/public IP information.
 
 ## Destroy
 

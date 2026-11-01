@@ -25,7 +25,7 @@ locals {
 }
 
 module "resource_groups" {
-  source   = "./modules/resource-group"
+  source   = "../../modules/resource-group"
   for_each = var.resource_groups
 
   name     = each.value.name
@@ -34,7 +34,7 @@ module "resource_groups" {
 }
 
 module "virtual_networks" {
-  source   = "./modules/virtual-network"
+  source   = "../../modules/virtual-network"
   for_each = var.virtual_networks
 
   name                = each.value.name
@@ -45,7 +45,7 @@ module "virtual_networks" {
 }
 
 module "subnets" {
-  source   = "./modules/subnet"
+  source   = "../../modules/subnet"
   for_each = var.subnets
 
   name                 = each.value.name
@@ -54,8 +54,20 @@ module "subnets" {
   address_prefixes     = each.value.address_prefixes
 }
 
+module "bastions" {
+  source   = "../../modules/bastion"
+  for_each = var.bastions
+
+  name                = each.value.name
+  location            = var.location
+  resource_group_name = module.resource_groups[var.virtual_networks[var.subnets[each.value.subnet].virtual_network].resource_group].name
+  subnet_id           = module.subnets[each.value.subnet].id
+  sku                 = each.value.sku
+  tags                = local.common_tags
+}
+
 module "network_security_groups" {
-  source   = "./modules/network-security-group"
+  source   = "../../modules/network-security-group"
   for_each = var.virtual_machines
 
   name                = "${each.value.name}-nsg"
@@ -79,7 +91,7 @@ module "network_security_groups" {
 }
 
 module "virtual_machines" {
-  source   = "./modules/virtual-machine"
+  source   = "../../modules/virtual-machine"
   for_each = var.virtual_machines
 
   name                   = each.value.name
@@ -96,7 +108,7 @@ module "virtual_machines" {
 }
 
 module "vnet_peerings" {
-  source   = "./modules/vnet-peering"
+  source   = "../../modules/vnet-peering"
   for_each = local.peerings
 
   name                       = each.value.name
@@ -107,7 +119,7 @@ module "vnet_peerings" {
 }
 
 module "route_tables" {
-  source = "./modules/route-table"
+  source = "../../modules/route-table"
   for_each = {
     for key, subnet in var.subnets : key => subnet
     if contains(var.spoke_vnet_keys, subnet.virtual_network)

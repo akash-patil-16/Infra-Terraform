@@ -59,6 +59,16 @@ variable "virtual_machines" {
   }))
 }
 
+variable "bastions" {
+  description = "Azure Bastion hosts keyed by logical role."
+  type = map(object({
+    name   = string
+    subnet = string
+    sku    = optional(string, "Standard")
+  }))
+  default = {}
+}
+
 
 variable "firewall_next_hop_ip" {
   description = "Optional private IP for a future Azure Firewall. When null, no default route is created."

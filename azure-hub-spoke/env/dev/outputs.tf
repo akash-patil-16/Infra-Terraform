@@ -48,3 +48,13 @@ output "vnet_peering_ids" {
   description = "IDs of the hub-to-spoke and spoke-to-hub peerings."
   value       = { for key, peering in module.vnet_peerings : key => peering.id }
 }
+
+output "bastion_ids" {
+  description = "Resource IDs of Azure Bastion hosts, keyed by logical role."
+  value       = { for key, bastion in module.bastions : key => bastion.id }
+}
+
+output "bastion_public_ip_addresses" {
+  description = "Public IP addresses assigned to Azure Bastion hosts, keyed by logical role."
+  value       = { for key, bastion in module.bastions : key => bastion.public_ip_address }
+}
